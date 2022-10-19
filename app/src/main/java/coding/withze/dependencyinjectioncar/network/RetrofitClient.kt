@@ -1,12 +1,18 @@
 package coding.withze.dependencyinjectioncar.network
 
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
+@Module
+@InstallIn(SingletonComponent::class)
 object RetrofitClient {
-
     const val BASE_URL= "https://rent-cars-api.herokuapp.com/"
 
     private  val logging : HttpLoggingInterceptor
@@ -17,13 +23,20 @@ object RetrofitClient {
             }
         }
 
-    private val clint = OkHttpClient.Builder().addInterceptor(logging).build()
+    private val client = OkHttpClient.Builder().addInterceptor(logging).build()
 
-    val instance: RestfulApi by lazy {
-        val retrofit = Retrofit.Builder()
+    @Provides
+    @Singleton
+    fun provideRetrofit() : Retrofit=
+        Retrofit.Builder()
             .baseUrl(BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
             .build()
+
+    @Provides
+    @Singleton
+    fun provideNewsApi(retrofit: Retrofit) : RestfulApi =
         retrofit.create(RestfulApi::class.java)
-    }
+
 }
